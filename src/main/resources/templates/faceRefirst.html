@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <base th:href="${#request.getContextPath()}+'/'">
+    <title>Title</title>
+    <!--    引入样式-->
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script src="/layui/layui.js"></script>
+</head>
+<body>
+<!--引入layui核心组件js-->
+
+<!--编写自己的js-->
+<script>
+    // 使用use该函数引入相关js
+    layui.use(['layer', 'jquery', 'table', 'form'], function () {
+        //实例消息组件layer
+        let layer = layui.layer;
+        //实例化jquery组件
+        let $ = layui.jquery;
+        //实例化表格组件
+        let table = layui.table;
+        //实例化表单组件
+        let form = layui.form;
+
+
+
+
+        $('#but-edit').click(function () {
+            let array = table.checkStatus('dg').data;
+            if (array.length == 0) {
+                layer.msg('请选择需要考勤的部门');
+            } else if (array.length > 1) {
+                layer.msg('一次只能考勤一个部门');
+            } else {
+                let actid = array[0].actid;
+                window.open("/attendrecord/faceRe?actid="+actid);
+            }
+        })
+
+
+
+
+
+
+
+        //条件查询
+        $("#but-search").click(function () {
+            table.reload('dg', {
+                where: {
+                    actname: $("#actname").val(),
+                    username: $("#username").val()
+                }
+            })
+        })
+        //第一个实例
+        table.render({
+            elem: '#dg'  //指定要操作的表格
+            , url: '/active/listPage' //数据接口
+            , page: true //开启分页
+            , cols: [
+                [
+                    {field: 'actid', title: '活动编号', type: 'checkbox'},
+                    {field: 'actname', title: '考勤活动名称'},
+                    {field: 'deptname', title: '活动举办部门'},
+                    {field: 'username', title: '活动负责人'},
+                    {field: 'acttime', title: '活动时间'},
+                    {field: 'actplace', title: '活动地点'}
+                ]
+            ]
+        });
+        })
+
+
+
+</script>
+<!--工具栏-->
+<div>
+    部门名称：
+    <div class="layui-inline">
+        <input class="layui-input" id="name">
+    </div>
+    <button class="layui-btn" id="but-search"><i class="layui-icon">&#xe615;</i>搜索</button>
+    <button class="layui-btn layui-btn-normal" id="but-edit"><i class="layui-icon">&#xe654;</i>人脸考勤</button>
+</div>
+<!--定义表格-->
+<table id="dg"></table>
+
+
+
+
+</body>
+</html>

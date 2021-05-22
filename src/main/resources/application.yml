@@ -1,0 +1,34 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    username: root
+    password: as987654.
+    url: jdbc:mysql://47.113.204.236:3306/faceapi?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=UTC
+    type: com.alibaba.druid.pool.DruidDataSource
+  thymeleaf:
+    cache: false # 关闭页面缓存
+    encoding: UTF-8 # 模板编码
+    prefix: classpath:/templates/  # 页面映射路径
+    suffix: .html # 试图后的后缀
+    mode: HTML5 # 模板模式
+  devtools:
+    restart:
+      enabled: true
+
+
+#  #热部署生效
+#  spring.devtools.restart.enabled=true
+#  #设置重启的目录,添加那个目录的文件需要restart
+#  spring.devtools.restart.additional-paths=src/main/java
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+#  type-aliases-package: com.gokibe.facejs
+#showSql
+logging:
+  level:
+    com:
+      gokibe:
+        facejs : debug

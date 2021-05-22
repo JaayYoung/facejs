@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <base th:href="${#request.getContextPath()}+'/'">
+    <meta charset="UTF-8">
+    <title>人脸信息录入</title>
+    <script src="face-api.js"></script>
+    <script src="/js/commons.js"></script>
+    <link rel="stylesheet" href="/css/materialize.css">
+    <link rel="stylesheet" href="styles.css">
+    <script type="text/javascript" src="/js/jquery-2.1.1.min.js"></script>
+    <script src="/js/materialize.min.js"></script>
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script src="/layui/layui.js"></script>
+</head>
+<body>
+
+<div>
+
+    <video id="video" autoplay muted loop playsinline></video>
+    <canvas id="overlay"></canvas>
+
+
+</div>
+</body>
+
+<script th:inline="javascript" type="text/javascript">
+
+    // const displaySize = {width: 200, height: 200};
+    let canvas = document.getElementById('overlay');
+    let video = document.getElementById('video');
+
+    //getUserMedia 返回摄像头的流数据
+    if (navigator.mediaDevices.getUserMedia === undefined) {
+        navigator.mediaDevices.getUserMedia = function (options) {   // 首先，如果有getUserMedia的话，就获得它
+            let userMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+
+            // 一些浏览器根本没实现它 - 那么就返回一个error到promise的reject来保持一个统一的接口
+            if (!userMedia) {
+                return Promise.reject(new Error('userMedia is not implemented in this browser'));
+            }
+
+            // 否则，为老的navigator.getUserMedia方法包裹一个Promise
+            return new Promise(function (resolve, reject) {
+                userMedia.call(navigator, options, resolve, reject);
+            });
+        }
+    }
+
+    //参数
+    const options = {
+        video: true,
+        audio: false
+    };
+    let promise = navigator.mediaDevices.getUserMedia(options);
+    //打开设备，获取数据流
+    promise.then(stream => {
+        // 旧的浏览器可能没有srcObject
+        if ("srcObject" in video) {
+            video.srcObject = stream;
+        } else {
+            // 防止再新的浏览器里使用它，应为它已经不再支持了
+            video.src = window.URL.createObjectURL(stream);
+        }
+        //如果数据已经加载了，就播放
+        video.onloadedmetadata = (e) => {
+            video.play();
+        };
+    }).catch(err => {
+        console.error(err.name + ": " + err.message);
+    });
+
+    //监听摄像头播放事件
+    video.addEventListener('play', () => {
+        displayingDetectionResult();
+
+        // setInterval(displayingDetectionResult, 1000);   //第秒种输出一次结果
+
+    });
+
+
+    //识别的结果处理
+    async function displayingDetectionResult() {
+        if (!faceapiIsReady()) {
+            return;
+        }
+
+        const options = new faceapi.TinyFaceDetectorOptions({scoreThreshold: 0.2, inputSize: 608});
+        const detections = await faceapi.detectAllFaces(video, options).withFaceLandmarks().withFaceDescriptors();     //
+        if (!detections || detections.length <= 0) {
+            return;
+        }
+
+        // console.info(detections[0].detection.score,detections[0].descriptor);
+
+        const dims = faceapi.matchDimensions(canvas, video, true);
+        const resizedDetections = faceapi.resizeResults(detections, dims);
+        faceapi.draw.drawDetections(canvas, resizedDetections);             //用方框标出人脸的位置
+        faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+        //用点位标出人脸的位置
+        //将 detections[0].descriptor 上传至服务器
+        // if(detections[0].detection.score>=0.8){
+        let arr = [];
+        facemessage = detections[0].descriptor;
+
+        for (let i = 0; i < facemessage.length; i++) {
+            arr[i] = String(facemessage[i]);
+        }
+        var attid = [[${attid}]]
+        layui.use(['layer', 'jquery', 'table', 'form'], function () {
+            //实例消息组件layer
+            let layer = layui.layer;
+            //实例化jquery组件
+            let $ = layui.jquery;
+            $.post('/facefeature/getface', {"arr[]": arr,"attid":attid}, function (flag) {
+                if (flag) {
+                    alert("人脸信息录入成功！");
+                    window.location.href = "/";
+                } else {
+                    alert("人脸信息录入失败！");
+                    window.location.href = "/facefeature/toface";
+                }
+
+            })
+        })
+
+
+    }
+
+
+    function getCurrentFaceDetectionNet() {
+        return faceapi.nets.tinyFaceDetector;
+    }
+
+    /**
+     * 人脸api是否准备好
+     * @author
+     * @date 2020/8/8 18:16
+     */
+    function faceapiIsReady() {
+        return !!getCurrentFaceDetectionNet().params
+    }
+
+    //人脸识别初始化配置
+    async function init() {
+        await getCurrentFaceDetectionNet().load('/weights');        //神经网络加载
+        await faceapi.loadFaceLandmarkModel('/weights');            //人脸识别必须
+        await faceapi.loadFaceRecognitionModel('/weights');        //人脸识别必须
+    }
+
+    $(() => {
+        init();
+    })
+
+</script>
+
+</html>

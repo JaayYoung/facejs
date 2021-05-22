@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gokibe.facejs.dao.FacefeatureDao">
+
+    <resultMap type="com.gokibe.facejs.entity.Facefeature" id="FacefeatureMap">
+        <result property="faceid" column="faceId" jdbcType="INTEGER"/>
+        <result property="attid" column="attId" jdbcType="INTEGER"/>
+        <result property="attname" column="attName" jdbcType="VARCHAR"/>
+        <result property="facemark" column="facemark" jdbcType="LONGNVARCHAR"/>
+        <result property="imgurl" column="imgurl" jdbcType="VARCHAR"/>
+        <result property="imglabel" column="imglabel" jdbcType="VARCHAR"/>
+        <result property="delflag" column="delflag" jdbcType="OTHER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="FacefeatureMap">
+        select
+          faceId, attId, attName, facemark, imgurl, imglabel, delflag
+        from faceapi.facefeature
+        where faceId = #{faceid}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="FacefeatureMap">
+        select
+          faceId, attId, attName, facemark, imgurl, imglabel, delflag
+        from faceapi.facefeature
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="FacefeatureMap">
+        select
+        faceId, attId, attName, facemark, imgurl, imglabel, delflag
+        from faceapi.facefeature
+        where delflag = 0
+
+
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="faceid" useGeneratedKeys="true">
+        insert into faceapi.facefeature(attId, attName, facemark, imgurl, imglabel)
+        values (#{attid}, #{attname}, #{facemark}, #{imgurl}, #{imglabel})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update faceapi.facefeature
+        <set>
+            <if test="attid != null">
+                attId = #{attid},
+            </if>
+            <if test="attname != null and attname != ''">
+                attName = #{attname},
+            </if>
+            <if test="facemark != null">
+                facemark = #{facemark},
+            </if>
+            <if test="imgurl != null and imgurl != ''">
+                imgurl = #{imgurl},
+            </if>
+            <if test="imglabel != null and imglabel != ''">
+                imglabel = #{imglabel},
+            </if>
+
+        </set>
+        where faceId = #{faceid}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from faceapi.facefeature where faceId = #{faceid}
+    </delete>
+
+    <select id="queryByAid" resultMap="FacefeatureMap">
+        select * from faceapi.facefeature where attId = #{aid}
+    </select>
+
+
+
+
+</mapper>

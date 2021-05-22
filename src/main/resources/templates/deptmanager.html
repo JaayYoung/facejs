@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <base th:href="${#request.getContextPath()}+'/'">
+    <title>Title</title>
+    <!--    引入样式-->
+    <link rel="stylesheet" href="/layui/css/layui.css">
+    <script src="/layui/layui.js"></script>
+</head>
+<body>
+<!--引入layui核心组件js-->
+
+<!--编写自己的js-->
+<script>
+    // 使用use该函数引入相关js
+    layui.use(['layer', 'jquery', 'table', 'form'], function () {
+        //实例消息组件layer
+        let layer = layui.layer;
+        //实例化jquery组件
+        let $ = layui.jquery;
+        //实例化表格组件
+        let table = layui.table;
+        //实例化表单组件
+        let form = layui.form;
+
+
+
+        //添加
+        $("#but-add").click(function () {
+            //弹出添加对话框
+            layer.open({
+                type: 1, //1（页面层）
+                title: '添加',
+                area: ['500px', '300px'],
+                closeBtn: 1,//右上关闭
+                content: $("#add-dialog").html(),//打开下面定义的表格页面
+
+            });
+
+            //监听添加按钮，获得表单参数进行添加操作即可
+            form.on('submit(form-add-submit)', function (data) {
+                $.post('/dept/save', data.field, function (flag) {
+                    if (flag) {
+                        table.reload('dg');//刷新表格
+                        layer.closeAll('page');//关闭嵌入网页的对话框
+                        layer.msg('添加成功', {icon: 6});
+                    } else {
+                        layer.msg('操作失败', {icon: 5});
+                    }
+
+                })
+                return false;//阻止表单提交action属性地址
+            })
+
+
+        })
+        $('#but-edit').click(function () {
+            let array = table.checkStatus('dg').data;
+            if (array.length == 0) {
+                layer.msg('请选择需要修改的数据');
+            } else if (array.length > 1) {
+                layer.msg('只能选择需要修改的一条数据');
+            } else {
+                layer.open({
+                    type: 1, //1（页面层）
+                    title: '添加',
+                    area: ['500px', '300px'],
+                    closeBtn: 1,//右上关闭
+                    content: $("#edit-dialog").html() //打开下面定义的表格页面
+                });
+                //    填充修改表单
+                form.val('edit-form-load-data', {
+                    // 表单 ： bean.属性
+                    deptid: array[0].deptid,
+                    deptname: array[0].deptname,
+                    deptnum: array[0].deptnum,
+                    deptmajor: array[0].deptmajor,
+                })
+            }
+            form.on('submit(form-edit-submit)', function (data) {
+                $.post('/dept/update', data.field, function (flag) {
+                    if (flag) {
+                        table.reload('dg');//刷新表格
+                        layer.closeAll('page');//关闭嵌入网页的对话框
+                        layer.msg('修改成功', {icon: 6});
+                    } else {
+                        layer.msg('操作失败', {icon: 5});
+                    }
+
+                })
+                return false;//阻止表单提交action属性地址
+            })
+        })
+
+        //删除
+        $("#but-remove").click(function () {
+            let array = table.checkStatus("dg").data;//获得选中数据
+            if (array.length == 0) {
+                layer.msg('请选择要删除的数据', {icon: 5});
+            } else {
+                let uids = [];
+                for (let i in array) {
+                    uids.push(array[i].deptid);
+                }
+                $.post('/dept/removeBatch', {"ids[]": uids}, function (flag) {
+                    if (flag) {
+                        table.reload('dg');
+                        layer.msg('删除数据成功', {icon: 6});
+                    } else {
+                        layer.msg('删除数据失败', {icon: 5});
+                    }
+
+                })
+
+            }
+        })
+
+        //条件查询
+        $("#but-search").click(function () {
+            table.reload('dg', {
+                where: {
+                    deptname: $("#name").val()
+                }
+            })
+        })
+        //第一个实例
+        table.render({
+            elem: '#dg'  //指定要操作的表格
+            , url: '/dept/listPage' //数据接口
+            , page: true //开启分页
+            , cols: [
+                [
+                    {field: 'deptid', title: '部门id', type: 'checkbox'},
+                    {field: 'deptname', title: '部门名称'},
+                    {field: 'deptnum', title: '部门编号'},
+                    {field: 'deptmajor', title: '部门负责人'},
+                ]
+            ]
+        });
+    })
+</script>
+<!--工具栏-->
+<div>
+    部门名称：
+    <div class="layui-inline">
+        <input class="layui-input" id="name">
+    </div>
+    <button class="layui-btn" id="but-search"><i class="layui-icon">&#xe615;</i>搜索</button>
+    <button class="layui-btn layui-btn-normal" id="but-add"><i class="layui-icon">&#xe654;</i>添加</button>
+    <button class="layui-btn layui-btn-normal" id="but-edit"><i class="layui-icon">&#xe654;</i>修改</button>
+    <button class="layui-btn layui-btn-danger" id="but-remove"><i class="layui-icon">&#xe640;</i>删除</button>
+</div>
+<!--定义表格-->
+<table id="dg"></table>
+
+<!--定义一个添加对话框-->
+<script id="add-dialog" type="text/html">
+    <form class="layui-form">
+        <div class="layui-form-item">
+            <label class="layui-form-label">部门名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="deptname" required lay-verify="required" placeholder="请输入用户名称"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">部门编号</label>
+            <div class="layui-input-block">
+                <input type="text" name="deptnum" required lay-verify="required" placeholder="请输入用户账号"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">部门负责人</label>
+            <div class="layui-input-block">
+                <input type="text" name="deptmajor" required lay-verify="required" placeholder="请输入用户密码"
+                       class="layui-input">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="form-add-submit">保存</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</script>
+<!--定义一个修改对话框-->
+<script id="edit-dialog" type="text/html">
+    <!--lay-filter填充表单-->
+    <form class="layui-form" lay-filter="edit-form-load-data">
+        <!--        添加隐藏域，去拿取id-->
+        <input hidden name="deptid">
+        <div class="layui-form-item">
+            <label class="layui-form-label">部门名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="deptname" required lay-verify="required" placeholder="请输入部门名称"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">部门编号</label>
+            <div class="layui-input-block">
+                <input type="text" name="deptnum" required lay-verify="required" placeholder="请输入部门编号"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">部门负责人</label>
+            <div class="layui-input-block">
+                <input type="text" name="deptmajor" required lay-verify="required" placeholder="请输入负责人姓名"
+                       class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <!--                //lay-filter操作表单提交-->
+                <button class="layui-btn" lay-submit lay-filter="form-edit-submit">修改</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</script>
+</body>
+</html>

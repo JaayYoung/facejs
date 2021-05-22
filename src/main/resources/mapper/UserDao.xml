@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gokibe.facejs.dao.UserDao">
+
+    <resultMap type="com.gokibe.facejs.entity.User" id="UserMap">
+        <result property="userid" column="userId" jdbcType="INTEGER"/>
+        <result property="useraccount" column="userAccount" jdbcType="VARCHAR"/>
+        <result property="userpassword" column="userPassword" jdbcType="VARCHAR"/>
+        <result property="username" column="userName" jdbcType="VARCHAR"/>
+        <result property="usertel" column="userTel" jdbcType="INTEGER"/>
+        <result property="delflag" column="delflag" jdbcType="OTHER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="UserMap">
+        select
+          userId, userAccount, userPassword, userName, userTel, delflag
+        from faceapi.user
+        where userId = #{userid}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="UserMap">
+        select
+          userId, userAccount, userPassword, userName, userTel, delflag
+        from faceapi.user
+        <where>
+            <if test="uname !=null and uname != ''">
+                userName like '%${uname}%'
+            </if>
+            and delflag = 0
+        </where>
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="UserMap">
+        select
+        userId, userAccount, userPassword, userName, userTel, delflag
+        from faceapi.user
+        <where>
+            <if test="userid != null">
+                and userId = #{userid}
+            </if>
+            <if test="useraccount != null and useraccount != ''">
+                and userAccount = #{useraccount}
+            </if>
+            <if test="userpassword != null and userpassword != ''">
+                and userPassword = #{userpassword}
+            </if>
+            <if test="username != null and username != ''">
+                and userName = #{username}
+            </if>
+            <if test="usertel != null">
+                and userTel = #{usertel}
+            </if>
+            <if test="delflag != null">
+                and delflag = #{delflag}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="userid" useGeneratedKeys="true">
+        insert into faceapi.user(userAccount, userPassword, userName, userTel)
+        values (#{useraccount}, #{userpassword}, #{username}, #{usertel})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update faceapi.user
+        <set>
+            <if test="useraccount != null and useraccount != ''">
+                userAccount = #{useraccount},
+            </if>
+            <if test="userpassword != null and userpassword != ''">
+                userPassword = #{userpassword},
+            </if>
+            <if test="username != null and username != ''">
+                userName = #{username},
+            </if>
+            <if test="usertel != null">
+                userTel = #{usertel},
+            </if>
+            <if test="delflag != null">
+                delflag = #{delflag},
+            </if>
+        </set>
+        where userId = #{userid}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from faceapi.user where userId = #{userid}
+    </delete>
+
+    <select id="getCount" resultType="int">
+        select  count(*) from faceapi.user
+        <where>
+            <if test="uname !=null and uname !=''">
+                userName like '%${uname}%'
+            </if>
+            and delflag = 0
+        </where>
+
+    </select>
+
+    <update id="removeBatch">
+        update faceapi.user set delflag = 1
+        where userId in
+        <foreach item="item" index="index" collection="array"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <select id="findByUseraccountAndUserpassword" resultMap="UserMap">
+        select * from faceapi.user where userAccount = #{uname} and userPassword = #{upass}
+    </select>
+
+</mapper>

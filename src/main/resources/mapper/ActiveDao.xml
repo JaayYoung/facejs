@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gokibe.facejs.dao.ActiveDao">
+
+    <resultMap type="com.gokibe.facejs.entity.Active" id="ActiveMap">
+        <result property="actid" column="actId" jdbcType="INTEGER"/>
+        <result property="userid" column="userId" jdbcType="INTEGER"/>
+        <result property="deptid" column="deptId" jdbcType="INTEGER"/>
+        <result property="actname" column="actName" jdbcType="VARCHAR"/>
+        <result property="deptname" column="deptName" jdbcType="VARCHAR"/>
+        <result property="username" column="userName" jdbcType="VARCHAR"/>
+        <result property="acttime" column="actTime" jdbcType="OTHER"/>
+        <result property="actplace" column="actPlace" jdbcType="VARCHAR"/>
+        <result property="delflag" column="delflag" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="ActiveMap">
+        select
+          actId, userId, deptId, actName, deptName, userName, actTime, actPlace
+        from faceapi.active
+        where actId = #{actid}
+        and delflag =0
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="ActiveMap">
+        select
+          actId, userId, deptId, actName, deptName, userName, actTime, actPlace
+        from faceapi.active
+        <where>
+            <if test="actname != null and actname != ''">
+                 actName  like '%${actname}%'
+            </if>
+            and delflag = 0
+        </where>
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="ActiveMap">
+        select
+        actId, userId, deptId, actName, deptName, userName, actTime, actPlace
+        from faceapi.active
+        <where>
+            <if test="actid != null">
+                and actId = #{actid}
+            </if>
+            <if test="userid != null">
+                and userId = #{userid}
+            </if>
+            <if test="deptid != null">
+                and deptId = #{deptid}
+            </if>
+            <if test="actname != null and actname != ''">
+                and actName = #{actname}
+            </if>
+            <if test="deptname != null and deptname != ''">
+                and deptName = #{deptname}
+            </if>
+            <if test="username != null and username != ''">
+                and userName = #{username}
+            </if>
+            <if test="acttime != null">
+                and actTime = #{acttime}
+            </if>
+            <if test="actplace != null and actplace != ''">
+                and actPlace = #{actplace}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="actid" useGeneratedKeys="true">
+        insert into faceapi.active(userId, deptId, actName, deptName, userName, actTime, actPlace)
+        values (#{userid}, #{deptid}, #{actname}, #{deptname}, #{username}, #{acttime}, #{actplace})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update faceapi.active
+        <set>
+            <if test="userid != null">
+                userId = #{userid},
+            </if>
+            <if test="deptid != null">
+                deptId = #{deptid},
+            </if>
+            <if test="actname != null and actname != ''">
+                actName = #{actname},
+            </if>
+            <if test="deptname != null and deptname != ''">
+                deptName = #{deptname},
+            </if>
+            <if test="username != null and username != ''">
+                userName = #{username},
+            </if>
+            <if test="acttime != null">
+                actTime = #{acttime},
+            </if>
+            <if test="actplace != null and actplace != ''">
+                actPlace = #{actplace},
+            </if>
+        </set>
+        where actId = #{actid}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from faceapi.active where actId = #{actid}
+    </delete>
+
+
+
+    <select
+    id="getCount" resultType="int">
+        select count(*) from faceapi.active
+        <where>
+            <if test="actname != null and actname != ''">
+                actName  like '%${actname}%'
+            </if>
+            and delflag = 0
+        </where>
+    </select>
+
+    <update id="removeBatch">
+        update faceapi.user set delflag = 1
+        where activeId in
+        <foreach item="item" index="index" collection="array"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+</mapper>

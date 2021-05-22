@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gokibe.facejs.dao.AttendrecordDao">
+
+    <resultMap type="com.gokibe.facejs.entity.Attendrecord" id="AttendrecordMap">
+        <result property="recid" column="recId" jdbcType="INTEGER"/>
+        <result property="attid" column="attId" jdbcType="INTEGER"/>
+        <result property="actid" column="actId" jdbcType="INTEGER"/>
+        <result property="attname" column="attName" jdbcType="VARCHAR"/>
+        <result property="recstatic" column="recStatic" jdbcType="INTEGER"/>
+        <result property="rectime" column="recTime" jdbcType="OTHER"/>
+        <result property="recplace" column="recPlace" jdbcType="VARCHAR"/>
+        <result property="recactive" column="recActive" jdbcType="VARCHAR"/>
+        <result property="delflag" column="delflag" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="AttendrecordMap">
+        select
+          recId, attId, actId, attName, recStatic, recTime, recPlace, recActive
+        from faceapi.attendrecord
+        where recId = #{recid}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="AttendrecordMap">
+        select
+          recId, attId, actId, attName, recStatic, recTime, recPlace, recActive
+        from faceapi.attendrecord
+        <where>
+            and delflag = 0
+        </where>
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="AttendrecordMap">
+        select
+        recId, attId, actId, attName, recStatic, recTime, recPlace, recActive
+        from faceapi.attendrecord
+        <where>
+            <if test="recid != null">
+                and recId = #{recid}
+            </if>
+            <if test="attid != null">
+                and attId = #{attid}
+            </if>
+            <if test="actid != null">
+                and actId = #{actid}
+            </if>
+            <if test="attname != null and attname != ''">
+                and attName = #{attname}
+            </if>
+            <if test="recstatic != null">
+                and recStatic = #{recstatic}
+            </if>
+            <if test="rectime != null">
+                and recTime = #{rectime}
+            </if>
+            <if test="recplace != null and recplace != ''">
+                and recPlace = #{recplace}
+            </if>
+            <if test="recactive != null and recactive != ''">
+                and recActive = #{recactive}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="recid" useGeneratedKeys="true">
+        insert into faceapi.attendrecord(attId, actId, attName, recStatic, recTime, recPlace, recActive)
+        values (#{attid}, #{actid}, #{attname}, #{recstatic}, #{rectime}, #{recplace}, #{recactive})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update faceapi.attendrecord
+        <set>
+            <if test="attid != null">
+                attId = #{attid},
+            </if>
+            <if test="actid != null">
+                actId = #{actid},
+            </if>
+            <if test="attname != null and attname != ''">
+                attName = #{attname},
+            </if>
+            <if test="recstatic != null">
+                recStatic = #{recstatic},
+            </if>
+            <if test="rectime != null">
+                recTime = #{rectime},
+            </if>
+            <if test="recplace != null and recplace != ''">
+                recPlace = #{recplace},
+            </if>
+            <if test="recactive != null and recactive != ''">
+                recActive = #{recactive},
+            </if>
+        </set>
+        where recId = #{recid}
+    </update>
+    <select id="findByAttidAndActid" resultMap="AttendrecordMap">
+        select * from faceapi.attendrecord
+        where actId = #{actid} and attId = #{attid}
+        and delflag = 0
+    </select>
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from faceapi.attendrecord where recId = #{recid}
+    </delete>
+
+    <select
+            id="getCount" resultType="int">
+        select count(*) from faceapi.attendrecord
+        <where>
+            and delflag = 0
+        </where>
+    </select>
+
+    <update id="removeBatch">
+        update faceapi.attendrecord set delflag = 1
+        where recId in
+        <foreach item="item" index="index" collection="array"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+
+
+</mapper>

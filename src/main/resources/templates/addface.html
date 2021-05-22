@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <base th:href="${#request.getContextPath()}+'/'">
+    <title>Title</title>
+    <!--    引入样式-->
+    <link rel="stylesheet" href="/layui/css/layui.css">
+</head>
+<body>
+<!--引入layui核心组件js-->
+<script src="/layui/layui.js"></script>
+<!--编写自己的js-->
+<script>
+    // 使用use该函数引入相关js
+    layui.use(['layer', 'jquery', 'table', 'form'], function () {
+        //实例消息组件layer
+        let layer = layui.layer;
+        //实例化jquery组件
+        let $ = layui.jquery;
+        //实例化表格组件
+        let table = layui.table;
+        //实例化表单组件
+        let form = layui.form;
+
+
+
+        $('#but-edit').click(function () {
+            let array = table.checkStatus('dg').data;
+            if (array.length == 0) {
+                layer.msg('请选择需要录入人脸的人员');
+            } else if (array.length > 1) {
+                layer.msg('一次只能选择录入一个人员');
+            } else {
+                let attid = array[0].attid;
+              window.open("/facefeature/toface?attid="+attid);
+            }
+        })
+
+
+
+        //条件查询
+        $("#but-search").click(function () {
+            table.reload('dg', {
+                where: {
+                    attname: $("#name").val(),
+                    attNum:$("#num").val()
+                }
+            })
+        })
+        //第一个实例
+        table.render({
+            elem: '#dg'  //指定要操作的表格
+            , url: '/attender/listPage' //数据接口
+            , page: true //开启分页
+            , cols: [
+                [
+                    {field: 'attid', title: '用户Id', type: 'checkbox'},
+                    {field: 'attname', title: '用户姓名'},
+                    {field: 'attnum', title: '用户编号',sort:true},
+                    {field: 'deptname', title: '所属部门'},
+
+
+                ]
+            ]
+        });
+    })
+</script>
+<!--工具栏-->
+<div>
+    考勤人名称：
+    <div class="layui-inline">
+        <input class="layui-input" id="name">
+    </div>
+    考勤人编号：
+    <div class="layui-inline">
+        <input class="layui-input" id="num">
+    </div>
+    <button class="layui-btn" id="but-search"><i class="layui-icon">&#xe615;</i>搜索</button>
+    <button class="layui-btn layui-btn-normal" id="but-edit"><i class="layui-icon">&#xe654;</i>人脸信息录入</button>
+</div>
+<!--定义表格-->
+<table id="dg"></table>
+</body>
+</html>

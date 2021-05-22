@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gokibe.facejs.dao.DeptDao">
+
+    <resultMap type="com.gokibe.facejs.entity.Dept" id="DeptMap">
+        <result property="deptid" column="deptId" jdbcType="INTEGER"/>
+        <result property="deptname" column="deptName" jdbcType="VARCHAR"/>
+        <result property="deptnum" column="deptNum" jdbcType="VARCHAR"/>
+        <result property="deptmajor" column="deptMajor" jdbcType="VARCHAR"/>
+        <result property="delflag" column="delflag" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="DeptMap">
+        select
+          deptId, deptName, deptNum,deptNum
+        from faceapi.dept
+        where deptId = #{deptid}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="DeptMap">
+        select
+          deptId, deptName, deptNum,deptMajor, delflag
+        from faceapi.dept
+        <where>
+            <if test="deptName !=null and deptName != ''">
+                deptName like '%${deptName}%'
+            </if>
+            and delflag = 0
+        </where>
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="DeptMap">
+        select
+        deptId, deptName, deptNum,deptMajor, delflag
+        from faceapi.dept
+        <where>
+            <if test="deptid != null">
+                and deptId = #{deptid}
+            </if>
+            <if test="deptname != null and deptname != ''">
+                and deptName = #{deptname}
+            </if>
+            <if test="deptnum != null and deptnum != ''">
+                and deptNum = #{deptnum}
+            </if>
+
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="deptid" useGeneratedKeys="true">
+        insert into faceapi.dept(deptName, deptNum,deptMajor)
+        values (#{deptname}, #{deptnum},#{deptmajor})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update faceapi.dept
+        <set>
+            <if test="deptname != null and deptname != ''">
+                deptName = #{deptname},
+            </if>
+            <if test="deptnum != null and deptnum != ''">
+                deptNum = #{deptnum},
+            </if>
+            <if test="deptmajor != null and deptmajor != ''">
+                deptMajor = #{deptmajor},
+            </if>
+        </set>
+        where deptId = #{deptid}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from faceapi.dept where deptId = #{deptid}
+    </delete>
+
+    <select id="getCount" resultType="int">
+        select  count(*) from faceapi.dept
+        <where>
+            <if test="deptName !=null and deptName !=''">
+                deptName like '%${deptName}%'
+            </if>
+            and delflag = 0
+        </where>
+
+    </select>
+
+    <update id="removeBatch">
+        update faceapi.dept set delflag = 1
+        where deptId in
+        <foreach item="item" index="index" collection="array"
+                 open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+</mapper>
